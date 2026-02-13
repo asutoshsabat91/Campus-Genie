@@ -7,6 +7,7 @@ import chromadb
 from chromadb.config import Settings
 from PyPDF2 import PdfReader
 import openai
+import glob
 
 app = FastAPI()
 
@@ -20,6 +21,8 @@ app.add_middleware(
 
 CHROMA_HOST = os.getenv("CHROMA_HOST", "localhost")
 CHROMA_PORT = int(os.getenv("CHROMA_PORT", 8001))
+
+openai.api_key = os.getenv("OPENAI_API_KEY", "sk-xxxx")
 
 chroma_client = chromadb.Client(Settings(
     chroma_api_impl="rest",
@@ -64,6 +67,12 @@ def upload_document(file: UploadFile = File(...), doc_name: str = Form(...)):
             ids=[f"{chunk['doc']}_p{chunk['page']}"]
         )
     return {"status": "uploaded", "pages": len(chunks)}
+
+@app.get("/docs")
+def list_docs():
+    files = glob.glob("uploaded_docs/*.pdf")
+    docs = [os.path.basename(f) for f in files]
+    return {"docs": docs}
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest):
