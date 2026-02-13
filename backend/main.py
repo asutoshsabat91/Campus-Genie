@@ -24,11 +24,7 @@ CHROMA_PORT = int(os.getenv("CHROMA_PORT", 8001))
 
 openai.api_key = os.getenv("OPENAI_API_KEY", "sk-xxxx")
 
-chroma_client = chromadb.Client(Settings(
-    chroma_api_impl="rest",
-    chroma_server_host=CHROMA_HOST,
-    chroma_server_http_port=CHROMA_PORT,
-))
+chroma_client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
 
 class ChatRequest(BaseModel):
     question: str
