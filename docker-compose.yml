@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: campusgenie_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - CHROMA_HOST=vector_db
+      - CHROMA_PORT=8001
+    depends_on:
+      - vector_db
+
+  frontend:
+    build: ./frontend
+    container_name: campusgenie_frontend
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - backend
+
+  vector_db:
+    image: chromadb/chroma:latest
+    container_name: campusgenie_vectordb
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./vectordb:/data
