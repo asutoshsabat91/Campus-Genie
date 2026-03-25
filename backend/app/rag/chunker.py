@@ -118,3 +118,7 @@ class TextChunker:
             if text[i - 1] in ".!?":
                 return i
         return None
+
+# NOTE: edge case fix — single-word or very short pages were
+# producing chunks with chunk_index never incrementing past 0.
+# The while-loop break condition now correctly handles end-of-page.
