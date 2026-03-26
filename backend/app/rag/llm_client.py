@@ -24,8 +24,14 @@ logger = logging.getLogger(__name__)
 
 RAG_PROMPT_TEMPLATE = """You are CampusGenie, an educational AI assistant designed to help college students understand their course materials thoroughly.
 
-Your purpose is to provide detailed, explanatory answers that help students learn and understand concepts deeply.
+Your purpose is to provide detailed, explanatory answers that help students learn and understand concepts deeply, while also being conversational and approachable.
 
+CONVERSATIONAL INTERACTIONS:
+- For greetings (hi, hello, hey, good morning, etc.): Respond warmly and ask how you can help with their studies
+- For basic pleasantries (how are you, thanks, etc.): Respond naturally and guide toward academic questions
+- For simple acknowledgments (ok, thanks, got it): Respond appropriately and offer further assistance
+
+EDUCATIONAL RESPONSES (for substantive questions):
 GUIDELINES:
 1. Use the provided context to answer the student's question comprehensively
 2. Provide detailed explanations that break down complex concepts into understandable parts
@@ -34,7 +40,7 @@ GUIDELINES:
 5. Always cite your sources using the format: [Source: Document Name, Page X]
 6. If multiple sources provide different perspectives, synthesize them and reference each
 7. If you cannot find relevant information after careful review, respond with exactly:
-   "Not found in uploaded documents."
+   "Not found in uploaded documents. Try uploading a more relevant PDF."
 
 EDUCATIONAL APPROACH:
 - Explain concepts step-by-step for better understanding
@@ -53,7 +59,7 @@ Chat History:
 
 Student Question: {question}
 
-Detailed Educational Answer:"""
+Response:"""
 
 NOT_FOUND_RESPONSE = "Not found in uploaded documents."
 
@@ -91,6 +97,7 @@ class LLMClient:
     ) -> str:
         """
         Generate an answer grounded in the retrieved context chunks.
+        Handles both conversational interactions and educational questions.
 
         Args:
             question:       The user's question
@@ -100,6 +107,12 @@ class LLMClient:
         Returns:
             Answer string (or NOT_FOUND_RESPONSE if info not in docs)
         """
+        
+        # Check for basic conversational interactions first
+        conversational_response = self._handle_conversational_interactions(question)
+        if conversational_response:
+            return conversational_response
+            
         client = self._get_client()
 
         # Build context from chunks
@@ -140,7 +153,7 @@ class LLMClient:
             answer = self._enhance_answer_formatting(answer)
             
             # Check if answer indicates not found
-            if not answer or answer.lower() in ['not found in uploaded documents.', 'i cannot answer based on the provided context.']:
+            if not answer or answer.lower() in ['not found in uploaded documents. try uploading a more relevant pdf.', 'i cannot answer based on the provided context.']:
                 return NOT_FOUND_RESPONSE
                 
             return answer
@@ -148,6 +161,40 @@ class LLMClient:
         except Exception as e:
             logger.error(f"LLM generation failed: {e}")
             return NOT_FOUND_RESPONSE
+
+    def _handle_conversational_interactions(self, question: str) -> str | None:
+        """
+        Handle basic conversational interactions without going through RAG pipeline.
+        Returns appropriate response for greetings and basic pleasantries.
+        """
+        question_lower = question.lower().strip()
+        
+        # Greetings
+        greetings = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'hi there', 'hello there']
+        if any(greeting in question_lower for greeting in greetings):
+            return "Hello! I'm CampusGenie, your educational AI assistant. I'm here to help you understand your course materials and answer questions about uploaded documents. What would you like to learn about today?"
+        
+        # How are you
+        if 'how are you' in question_lower:
+            return "I'm doing great, thanks for asking! I'm ready to help you with your academic questions. What can I assist you with today?"
+        
+        # Thanks
+        if any(word in question_lower for word in ['thanks', 'thank you', 'thx']):
+            return "You're welcome! I'm glad I could help. Do you have any other questions about your course materials?"
+        
+        # Goodbye
+        if any(word in question_lower for word in ['bye', 'goodbye', 'see you', 'see ya']):
+            return "Goodbye! Feel free to come back anytime you need help with your studies. Have a great day!"
+        
+        # Basic acknowledgments
+        if any(word in question_lower for word in ['ok', 'okay', 'got it', 'understood', 'alright']):
+            return "Great! Is there anything specific you'd like to know more about, or do you have other questions about your documents?"
+        
+        # What can you do
+        if any(phrase in question_lower for phrase in ['what can you do', 'what do you do', 'help me']):
+            return "I'm CampusGenie! I can help you understand your uploaded course documents by answering questions, providing detailed explanations, and giving you proper citations. Just upload your PDFs and ask me anything about them!"
+        
+        return None
 
     def _enhance_answer_formatting(self, answer: str) -> str:
         """
