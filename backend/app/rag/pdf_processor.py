@@ -4,7 +4,10 @@ Extracts text and metadata from uploaded PDF files using PyMuPDF (fitz).
 Returns structured page-level data for chunking.
 """
 
-import fitz  # PyMuPDF
+import fitz
+import logging
+
+logger = logging.getLogger(__name__)  # PyMuPDF
 import os
 from dataclasses import dataclass
 from typing import Optional
