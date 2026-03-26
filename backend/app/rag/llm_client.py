@@ -1,15 +1,15 @@
 """
-CampusGenie — LLM Client
-Integrates with Ollama (locally running Llama 3) via LangChain.
+CampusGenie — Educational LLM Client
+Integrates with Ollama (Gemma 2B) to provide detailed, explanatory answers for students.
 
-Why Ollama?
+Why Ollama + Educational Focus?
   - Runs 100% locally inside Docker — no API keys, no internet
-  - Llama 3 is strong for Q&A tasks
-  - LangChain wraps it with prompt templates + chain abstraction
+  - Gemma 2B provides excellent balance of performance and memory efficiency
+  - Educational prompt engineering ensures detailed, learning-focused responses
+  - Proper citation formatting helps students learn to reference sources
 
-The LLM is ONLY given retrieved chunks as context.
-It is explicitly instructed NOT to use outside knowledge.
-This is the anti-hallucination guarantee.
+The LLM is designed to provide comprehensive educational responses while
+maintaining strict adherence to provided context to ensure accuracy.
 """
 
 import logging
@@ -22,16 +22,26 @@ logger = logging.getLogger(__name__)
 # The system prompt is the KEY to preventing hallucination.
 # We explicitly tell the model: use ONLY the context below.
 
-RAG_PROMPT_TEMPLATE = """You are CampusGenie, an AI assistant for college students.
-You answer questions based on the provided context from campus documents.
+RAG_PROMPT_TEMPLATE = """You are CampusGenie, an educational AI assistant designed to help college students understand their course materials thoroughly.
 
-RULES:
-1. Use the context below to answer the question. The context contains relevant information.
-2. If you can find relevant information in the context, use it to answer.
-3. If you genuinely cannot find any relevant information after carefully reviewing the context, respond with exactly:
+Your purpose is to provide detailed, explanatory answers that help students learn and understand concepts deeply.
+
+GUIDELINES:
+1. Use the provided context to answer the student's question comprehensively
+2. Provide detailed explanations that break down complex concepts into understandable parts
+3. Include relevant examples, context, and background information when available
+4. Structure your answers clearly with proper formatting (bullet points, numbered lists, or paragraphs)
+5. Always cite your sources using the format: [Source: Document Name, Page X]
+6. If multiple sources provide different perspectives, synthesize them and reference each
+7. If you cannot find relevant information after careful review, respond with exactly:
    "Not found in uploaded documents."
-4. Be concise and accurate.
-5. When answering, refer to the source document naturally (e.g., "According to the document...").
+
+EDUCATIONAL APPROACH:
+- Explain concepts step-by-step for better understanding
+- Provide context to help students see the bigger picture
+- Use clear, educational language appropriate for college-level learning
+- Include practical implications or applications when relevant
+- Help students connect new information to what they might already know
 
 Context from campus documents:
 ---
@@ -43,15 +53,16 @@ Chat History:
 
 Student Question: {question}
 
-Answer:"""
+Detailed Educational Answer:"""
 
 NOT_FOUND_RESPONSE = "Not found in uploaded documents."
 
 
 class LLMClient:
     """
-    Wraps Ollama LLM with a RAG prompt.
-    Enforces context-only answering to prevent hallucination.
+    Educational LLM Client for CampusGenie.
+    Provides detailed, explanatory answers for student learning with proper citations.
+    Engineered to prevent hallucination while maximizing educational value.
     """
 
     def __init__(self):
@@ -118,11 +129,15 @@ class LLMClient:
                 model=settings.ollama_model,
                 prompt=prompt,
                 options={
-                    'temperature': 0.1,
+                    'temperature': 0.2,  # Slightly higher for more detailed responses
                     'num_ctx': 4096,
+                    'num_predict': 1024,  # Allow longer responses
                 }
             )
             answer = response['response'].strip()
+            
+            # Post-process answer for better formatting
+            answer = self._enhance_answer_formatting(answer)
             
             # Check if answer indicates not found
             if not answer or answer.lower() in ['not found in uploaded documents.', 'i cannot answer based on the provided context.']:
@@ -133,6 +148,36 @@ class LLMClient:
         except Exception as e:
             logger.error(f"LLM generation failed: {e}")
             return NOT_FOUND_RESPONSE
+
+    def _enhance_answer_formatting(self, answer: str) -> str:
+        """
+        Enhance answer formatting for better readability and educational value.
+        """
+        # Ensure proper spacing and formatting
+        lines = answer.split('\n')
+        formatted_lines = []
+        
+        for line in lines:
+            line = line.strip()
+            if line:
+                # Add proper spacing for bullet points and numbered lists
+                if line.startswith(('•', '-', '*')):
+                    formatted_lines.append(f"  {line}")
+                elif line and line[0].isdigit() and '.' in line[:10]:
+                    formatted_lines.append(f"  {line}")
+                else:
+                    formatted_lines.append(line)
+            else:
+                formatted_lines.append("")  # Preserve empty lines
+        
+        # Ensure proper paragraph breaks
+        formatted_answer = '\n\n'.join(formatted_lines)
+        
+        # Add educational closing if not present
+        if not any(phrase in formatted_answer.lower() for phrase in ['source:', 'reference:', 'see also']):
+            formatted_answer += "\n\n*Remember to review the source documents for complete details.*"
+        
+        return formatted_answer
 
     def is_available(self) -> bool:
         """Check if Ollama service is reachable."""
