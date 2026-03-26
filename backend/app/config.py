@@ -9,7 +9,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     # Ollama LLM
     ollama_base_url: str = "http://ollama:11434"
-    ollama_model: str = "llama3"
+    ollama_model: str = "gemma:2b"
 
     # ChromaDB
     chroma_host: str = "chromadb"
@@ -29,15 +29,15 @@ class Settings(BaseSettings):
     # Upload directory (inside container)
     upload_dir: str = "/app/uploads"
 
+    # Logging
+    log_level: str = "INFO"
+
+    # CORS
+    cors_origins: list[str] = ["*"]
+
     class Config:
         env_file = ".env"
         case_sensitive = False
 
 
 settings = Settings()
-
-    # Logging
-    log_level: str = "INFO"
-
-    # CORS
-    cors_origins: list[str] = ["*"]

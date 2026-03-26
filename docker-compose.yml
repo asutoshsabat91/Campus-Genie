@@ -27,7 +27,7 @@ services:
     environment:
       - OLLAMA_KEEP_ALIVE=24h
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      test: ["CMD", "curl", "-f", "http://localhost:11434/"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -37,7 +37,7 @@ services:
 
   # ── ChromaDB — Vector Database ────────────────────────────────────────────
   chromadb:
-    image: chromadb/chroma:latest
+    image: chromadb/chroma:0.5.3
     container_name: campusgenie_chromadb
     restart: unless-stopped
     ports:
@@ -49,7 +49,7 @@ services:
       - PERSIST_DIRECTORY=/chroma/chroma
       - ANONYMIZED_TELEMETRY=FALSE
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -70,7 +70,7 @@ services:
       - uploads_data:/app/uploads
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
-      - OLLAMA_MODEL=llama3
+      - OLLAMA_MODEL=gemma:2b
       - CHROMA_HOST=chromadb
       - CHROMA_PORT=8000
       - CHROMA_COLLECTION=campus_docs
@@ -82,10 +82,8 @@ services:
       - RETRIEVAL_TOP_K=5
       - UPLOAD_DIR=/app/uploads
     depends_on:
-      chromadb:
-        condition: service_healthy
-      ollama:
-        condition: service_healthy
+      - chromadb
+      - ollama
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
       interval: 20s
@@ -107,8 +105,7 @@ services:
     environment:
       - BACKEND_URL=http://backend:8080
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
     networks:
       - campusgenie_net
 

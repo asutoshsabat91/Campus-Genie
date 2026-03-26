@@ -28,9 +28,14 @@ async def _ping_ollama() -> str:
 async def _ping_chromadb() -> str:
     try:
         async with httpx.AsyncClient(timeout=SERVICE_TIMEOUT) as client:
+            # Try v1 API first for older ChromaDB versions
             r = await client.get(
                 f"http://{settings.chroma_host}:{settings.chroma_port}/api/v1/heartbeat"
             )
+            if r.status_code == 200:
+                return "up"
+            # Fallback to root endpoint
+            r = await client.get(f"http://{settings.chroma_host}:{settings.chroma_port}/")
             return "up" if r.status_code == 200 else "degraded"
     except Exception:
         return "down"

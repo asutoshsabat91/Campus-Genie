@@ -22,23 +22,43 @@ st.set_page_config(
 # ── Styles ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-[data-testid="stAppViewContainer"] { background-color: #f5f6fa; }
+[data-testid="stAppViewContainer"] { background-color: #ffffff; }
 [data-testid="stSidebar"] { background-color: #ffffff; border-right: 1px solid #e2e5ee; }
 [data-testid="stSidebar"] [data-testid="stVerticalBlock"] { padding-top: 0; }
 #MainMenu, footer, header { visibility: hidden; }
 [data-testid="stToolbar"] { display: none; }
 
-.sb-brand { padding: 20px 0 14px; border-bottom: 1px solid #f0f1f5; margin-bottom: 16px; }
-.sb-brand-name { font-size: 1.05rem; font-weight: 700; color: #1a1f36; letter-spacing: -0.3px; }
-.sb-brand-tag  { font-size: 0.72rem; color: #9aa0b4; margin-top: 2px; }
+/* Global text color fixes */
+.stText, .stMarkdown, .stCaption, .stSubheader {
+    color: #000000 !important;
+}
+.stSelectbox > div > div {
+    color: #000000 !important;
+}
+.stButton > button {
+    color: #000000 !important;
+}
+.stFileUploader {
+    color: #000000 !important;
+}
+[data-testid="stFileUploaderDropZone"] {
+    color: #000000 !important;
+}
+[data-testid="stFileUploaderDropZoneInstructions"] {
+    color: #000000 !important;
+}
+
+.sb-brand { padding: 24px 0 18px; border-bottom: 1px solid #f0f1f5; margin-bottom: 20px; }
+.sb-brand-name { font-size: 1.15rem; font-weight: 700; color: #1a1f36; letter-spacing: -0.3px; }
+.sb-brand-tag  { font-size: 0.75rem; color: #9aa0b4; margin-top: 4px; line-height: 1.4; }
 
 .page-header {
     background: #ffffff; border: 1px solid #e2e5ee; border-radius: 12px;
     padding: 20px 24px; margin-bottom: 24px;
     display: flex; align-items: center; justify-content: space-between;
 }
-.page-header-left h2 { font-size: 1.2rem; font-weight: 700; color: #1a1f36; margin: 0; }
-.page-header-left p  { font-size: 0.82rem; color: #6b7280; margin: 4px 0 0; }
+.page-header-left h2 { font-size: 1.2rem; font-weight: 700; color: #000000; margin: 0; }
+.page-header-left p  { font-size: 0.82rem; color: #374151; margin: 4px 0 0; }
 .page-header-badge {
     background: #eef0fd; color: #4f46e5; border-radius: 6px;
     padding: 5px 14px; font-size: 0.72rem; font-weight: 600;
@@ -50,9 +70,9 @@ st.markdown("""
     flex: 1; background: #ffffff; border: 1px solid #e2e5ee;
     border-radius: 10px; padding: 16px 18px;
 }
-.stat-label { font-size: 0.73rem; color: #9aa0b4; font-weight: 500;
+.stat-label { font-size: 0.73rem; color: #374151; font-weight: 500;
               text-transform: uppercase; letter-spacing: 0.4px; }
-.stat-value { font-size: 1.5rem; font-weight: 700; color: #1a1f36; margin-top: 4px; line-height: 1; }
+.stat-value { font-size: 1.5rem; font-weight: 700; color: #000000; margin-top: 4px; line-height: 1; }
 
 .chat-wrap { display: flex; flex-direction: column; gap: 16px; margin-bottom: 16px; }
 .msg-row-user { display: flex; justify-content: flex-end; }
@@ -84,44 +104,76 @@ st.markdown("""
              border-radius: 4px; padding: 1px 7px; font-weight: 500; }
 .cite-snip { font-size: 0.78rem; color: #6b7280; font-style: italic; line-height: 1.5; }
 
-.doc-name { font-size: 0.9rem; font-weight: 600; color: #1a1f36; }
-.doc-meta { font-size: 0.76rem; color: #9aa0b4; margin-top: 3px; }
+.doc-name { font-size: 0.9rem; font-weight: 600; color: #000000; }
+.doc-meta { font-size: 0.76rem; color: #374151; margin-top: 3px; }
 .doc-pill {
-    font-size: 0.72rem; font-weight: 500; background: #f5f6fa; color: #4b5563;
+    font-size: 0.72rem; font-weight: 500; background: #f5f6fa; color: #000000;
     border: 1px solid #e2e5ee; border-radius: 5px; padding: 3px 10px;
     display: inline-block; margin-right: 6px;
 }
 
 .svc-row {
     background: #ffffff; border: 1px solid #e2e5ee; border-radius: 10px;
-    padding: 14px 18px; margin-bottom: 8px;
+    padding: 18px 20px; margin-bottom: 12px;
     display: flex; align-items: center; gap: 16px;
+    transition: all 0.2s ease;
 }
-.svc-name { font-size: 0.88rem; font-weight: 600; color: #1a1f36; flex: 1; }
-.svc-desc { font-size: 0.78rem; color: #9aa0b4; flex: 2; }
+.svc-row:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06); transform: translateY(-1px);
+}
+.svc-name { font-size: 0.95rem; font-weight: 600; color: #000000; flex: 1; }
+.svc-desc { font-size: 0.82rem; color: #374151; flex: 2; line-height: 1.4; }
 .badge-up   { background:#ecfdf5; color:#065f46; border:1px solid #bbf7d0;
-              border-radius:5px; padding:3px 10px; font-size:0.72rem; font-weight:600; }
+              border-radius:6px; padding:4px 12px; font-size:0.75rem; font-weight:600; }
 .badge-down { background:#fef2f2; color:#991b1b; border:1px solid #fecaca;
-              border-radius:5px; padding:3px 10px; font-size:0.72rem; font-weight:600; }
+              border-radius:6px; padding:4px 12px; font-size:0.75rem; font-weight:600; }
 .badge-deg  { background:#fffbeb; color:#92400e; border:1px solid #fde68a;
-              border-radius:5px; padding:3px 10px; font-size:0.72rem; font-weight:600; }
+              border-radius:6px; padding:4px 12px; font-size:0.75rem; font-weight:600; }
 .badge-unk  { background:#f5f6fa; color:#6b7280; border:1px solid #e2e5ee;
-              border-radius:5px; padding:3px 10px; font-size:0.72rem; font-weight:600; }
+              border-radius:6px; padding:4px 12px; font-size:0.75rem; font-weight:600; }
 
 .empty-state {
     text-align: center; padding: 56px 24px; background: #ffffff;
-    border: 1px dashed #d1d5db; border-radius: 12px; color: #9aa0b4;
+    border: 1px dashed #d1d5db; border-radius: 12px; color: #374151;
 }
-.empty-state h3 { font-size: 1rem; color: #4b5563; margin: 0 0 8px; }
-.empty-state p  { font-size: 0.84rem; line-height: 1.65; margin: 0; }
+.empty-state h3 { font-size: 1rem; color: #000000; margin: 0 0 8px; }
+.empty-state p  { font-size: 0.84rem; line-height: 1.65; margin: 0; color: #374151; }
 
 .section-title {
-    font-size: 0.78rem; font-weight: 600; color: #6b7280;
-    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
+    font-size: 0.82rem; font-weight: 600; color: #374151;
+    text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 16px;
+    padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;
 }
-.upload-zone {
-    background: #ffffff; border: 1px solid #e2e5ee;
-    border-radius: 10px; padding: 20px 24px; margin-bottom: 20px;
+.rag-pipeline {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 20px; margin: 16px 0;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+    font-size: 0.85rem; line-height: 1.6; color: #000000;
+}
+.rag-step {
+    margin-bottom: 20px;
+    padding: 16px;
+    background: #ffffff;
+    border-radius: 8px;
+    border-left: 4px solid #4f46e5;
+}
+.rag-step-title {
+    font-weight: 600; color: #000000; margin-bottom: 12px;
+    font-size: 0.95rem;
+}
+.rag-flow {
+    display: flex; align-items: center; margin: 8px 0;
+    flex-wrap: wrap;
+}
+.rag-item {
+    background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px;
+    padding: 6px 10px; margin: 2px; font-size: 0.8rem; color: #000000;
+}
+.rag-arrow {
+    color: #374151; margin: 0 8px; font-weight: bold;
+}
+.rag-highlight {
+    background: #eef0fd; color: #4f46e5; font-weight: 500;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -201,13 +253,19 @@ with st.sidebar:
 
     total_chunks = sum(d.get("chunk_count", 0) for d in docs_sidebar)
     st.markdown(f"""
-    <div style='font-size:0.78rem;line-height:2.1;'>
-        <span style='color:#9aa0b4;'>Documents</span>
-        <strong style='color:#1a1f36;float:right;'>{len(docs_sidebar)}</strong><br>
-        <span style='color:#9aa0b4;'>Total chunks</span>
-        <strong style='color:#1a1f36;float:right;'>{total_chunks}</strong><br>
-        <span style='color:#9aa0b4;'>Messages</span>
-        <strong style='color:#1a1f36;float:right;'>{len(st.session_state.messages)}</strong>
+    <div style='font-size:0.82rem;line-height:2.2;'>
+        <div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;'>
+            <span style='color:#6b7280;font-weight:500;'>📄 Documents</span>
+            <strong style='color:#1f2937;font-size:1.1rem;'>{len(docs_sidebar)}</strong>
+        </div>
+        <div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;'>
+            <span style='color:#6b7280;font-weight:500;'>🧩 Total chunks</span>
+            <strong style='color:#1f2937;font-size:1.1rem;'>{total_chunks}</strong>
+        </div>
+        <div style='display:flex;justify-content:space-between;align-items:center;'>
+            <span style='color:#6b7280;font-weight:500;'>💬 Messages</span>
+            <strong style='color:#1f2937;font-size:1.1rem;'>{len(st.session_state.messages)}</strong>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -452,9 +510,9 @@ elif page == "System Status":
     st.markdown("<div class='section-title'>Services</div>", unsafe_allow_html=True)
 
     SERVICES = {
-        "backend":  ("FastAPI Backend",  "REST API — handles upload and chat requests",         "8080"),
-        "ollama":   ("Ollama (Llama 3)", "Local LLM — generates answers from context",          "11434"),
-        "chromadb": ("ChromaDB",         "Vector database — stores and retrieves embeddings",   "8000"),
+        "backend":  ("🚀 FastAPI Backend",  "REST API — handles document uploads and chat requests",         "8080"),
+        "ollama":   ("🤖 Ollama (Llama 3)", "Local LLM — generates contextual answers from retrieved documents",          "11434"),
+        "chromadb": ("🗄️ ChromaDB",         "Vector database — stores and retrieves document embeddings",   "8000"),
     }
     for key, (label, desc, port) in SERVICES.items():
         status = services.get(key, "unknown")
@@ -476,21 +534,46 @@ elif page == "System Status":
 
     st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
     st.markdown("<div class='section-title'>RAG Pipeline</div>", unsafe_allow_html=True)
-    st.code("""
-Indexing  (PDF upload)
-  PDF file
-    -> PDFProcessor    : extract text per page (PyMuPDF)
-    -> TextChunker     : sliding window word chunks (size=500, overlap=50)
-    -> EmbeddingEngine : sentence-transformers / all-MiniLM-L6-v2
-    -> ChromaDB        : store vectors + metadata
-
-Query  (user question)
-  Question
-    -> EmbeddingEngine : embed question into query vector
-    -> ChromaDB        : retrieve top-5 similar chunks
-    -> Ollama Llama3   : answer strictly from context (no hallucination)
-    -> Response        : answer text + citations (document, page, snippet)
-    """, language="text")
+    
+    st.markdown("""
+    <div class="rag-pipeline">
+        <div class="rag-step">
+            <div class="rag-step-title">📄 Indexing (PDF Upload)</div>
+            <div class="rag-flow">
+                <span class="rag-item">PDF file</span>
+                <span class="rag-arrow">→</span>
+                <span class="rag-item rag-highlight">PDFProcessor</span>
+                <span class="rag-arrow">→</span>
+                <span class="rag-item rag-highlight">TextChunker</span>
+                <span class="rag-arrow">→</span>
+                <span class="rag-item rag-highlight">EmbeddingEngine</span>
+                <span class="rag-arrow">→</span>
+                <span class="rag-item rag-highlight">ChromaDB</span>
+            </div>
+            <div style="margin-top: 8px; font-size: 0.8rem; color: #6b7280;">
+                Extracts text → Creates chunks (500 words, 50 overlap) → Generates embeddings → Stores in vector DB
+            </div>
+        </div>
+        
+        <div class="rag-step">
+            <div class="rag-step-title">🔍 Query (User Question)</div>
+            <div class="rag-flow">
+                <span class="rag-item">Question</span>
+                <span class="rag-arrow">→</span>
+                <span class="rag-item rag-highlight">EmbeddingEngine</span>
+                <span class="rag-arrow">→</span>
+                <span class="rag-item rag-highlight">ChromaDB</span>
+                <span class="rag-arrow">→</span>
+                <span class="rag-item rag-highlight">Ollama Llama3</span>
+                <span class="rag-arrow">→</span>
+                <span class="rag-item">Response</span>
+            </div>
+            <div style="margin-top: 8px; font-size: 0.8rem; color: #6b7280;">
+                Embeds question → Retrieves top-5 chunks → Generates answer from context → Returns answer + citations
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("<div class='section-title'>Runtime Configuration</div>",
                 unsafe_allow_html=True)

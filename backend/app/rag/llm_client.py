@@ -13,9 +13,7 @@ This is the anti-hallucination guarantee.
 """
 
 import logging
-from langchain_ollama import OllamaLLM
-from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
+import ollama
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -25,14 +23,15 @@ logger = logging.getLogger(__name__)
 # We explicitly tell the model: use ONLY the context below.
 
 RAG_PROMPT_TEMPLATE = """You are CampusGenie, an AI assistant for college students.
-You answer questions ONLY based on the provided context from campus documents.
+You answer questions based on the provided context from campus documents.
 
-STRICT RULES:
-1. Answer ONLY from the context below. Do not use any outside knowledge.
-2. If the answer is not in the context, respond with exactly:
+RULES:
+1. Use the context below to answer the question. The context contains relevant information.
+2. If you can find relevant information in the context, use it to answer.
+3. If you genuinely cannot find any relevant information after carefully reviewing the context, respond with exactly:
    "Not found in uploaded documents."
-3. Be concise and accurate.
-4. When answering, refer to the source document naturally (e.g., "According to the syllabus...").
+4. Be concise and accurate.
+5. When answering, refer to the source document naturally (e.g., "According to the document...").
 
 Context from campus documents:
 ---
@@ -46,39 +45,32 @@ Student Question: {question}
 
 Answer:"""
 
-RAG_PROMPT = PromptTemplate(
-    input_variables=["context", "chat_history", "question"],
-    template=RAG_PROMPT_TEMPLATE,
-)
-
 NOT_FOUND_RESPONSE = "Not found in uploaded documents."
 
 
 class LLMClient:
     """
-    Wraps Ollama LLM with a RAG prompt chain.
+    Wraps Ollama LLM with a RAG prompt.
     Enforces context-only answering to prevent hallucination.
     """
 
     def __init__(self):
-        self._llm: OllamaLLM | None = None
-        self._chain: LLMChain | None = None
+        self._client = None
 
-    def _get_chain(self) -> LLMChain:
-        if self._chain is None:
-            logger.info(
-                f"Initialising Ollama LLM: model={settings.ollama_model}, "
-                f"url={settings.ollama_base_url}"
+    def _get_client(self):
+        if self._client is None:
+            logger.info(f"Initialising Ollama client: model={settings.ollama_model}")
+            self._client = ollama.Client(
+                host=settings.ollama_base_url.replace('http://', '').replace('https://', '')
             )
-            self._llm = OllamaLLM(
-                model=settings.ollama_model,
-                base_url=settings.ollama_base_url,
-                temperature=0.1,       # Low temp = factual, not creative
-                num_ctx=4096,          # Context window
-            )
-            self._chain = LLMChain(llm=self._llm, prompt=RAG_PROMPT)
-            logger.info("LLM chain ready ✓")
-        return self._chain
+            # Test connection
+            try:
+                models = self._client.list()
+                logger.info(f"Ollama connection successful, available models: {models}")
+            except Exception as e:
+                logger.error(f"Ollama connection failed: {e}")
+                raise e
+        return self._client
 
     def generate_answer(
         self,
@@ -97,23 +89,50 @@ class LLMClient:
         Returns:
             Answer string (or NOT_FOUND_RESPONSE if info not in docs)
         """
-        if not context_chunks:
-            return NOT_FOUND_RESPONSE
+        client = self._get_client()
 
-        context = self._format_context(context_chunks)
-        history_text = self._format_history(chat_history or [])
+        # Build context from chunks
+        context = "\n\n".join([chunk["text"] for chunk in context_chunks])
+        
+        # Build chat history string
+        history_str = ""
+        if chat_history:
+            # Convert role/content format to Q/A format
+            qa_pairs = []
+            for i, msg in enumerate(chat_history):
+                if msg['role'] == 'user':
+                    qa_pairs.append(f"Q: {msg['content']}")
+                elif msg['role'] == 'assistant' and qa_pairs:
+                    qa_pairs[-1] += f"\nA: {msg['content']}"
+            history_str = "\n".join(qa_pairs)
 
-        chain = self._get_chain()
-        response = chain.invoke(
-            {
-                "context": context,
-                "chat_history": history_text,
-                "question": question,
-            }
+        # Format prompt
+        prompt = RAG_PROMPT_TEMPLATE.format(
+            context=context,
+            chat_history=history_str,
+            question=question
         )
 
-        answer = response.get("text", "").strip()
-        return answer if answer else NOT_FOUND_RESPONSE
+        try:
+            response = client.generate(
+                model=settings.ollama_model,
+                prompt=prompt,
+                options={
+                    'temperature': 0.1,
+                    'num_ctx': 4096,
+                }
+            )
+            answer = response['response'].strip()
+            
+            # Check if answer indicates not found
+            if not answer or answer.lower() in ['not found in uploaded documents.', 'i cannot answer based on the provided context.']:
+                return NOT_FOUND_RESPONSE
+                
+            return answer
+            
+        except Exception as e:
+            logger.error(f"LLM generation failed: {e}")
+            return NOT_FOUND_RESPONSE
 
     def is_available(self) -> bool:
         """Check if Ollama service is reachable."""

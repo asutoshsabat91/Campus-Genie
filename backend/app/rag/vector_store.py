@@ -45,11 +45,15 @@ class VectorStore:
     def _get_collection(self):
         if self._collection is None:
             client = self._get_client()
-            self._collection = client.get_or_create_collection(
-                name=settings.chroma_collection,
-                metadata={"hnsw:space": "cosine"},
-            )
-            logger.info(f"Using ChromaDB collection: {settings.chroma_collection}")
+            try:
+                # Try without metadata first for older ChromaDB versions
+                self._collection = client.get_or_create_collection(
+                    name=settings.chroma_collection,
+                )
+                logger.info(f"Using ChromaDB collection: {settings.chroma_collection}")
+            except Exception as e:
+                logger.error(f"Failed to create collection: {e}")
+                raise e
         return self._collection
 
     # ── Write operations ──────────────────────────────────────────────────────
@@ -78,33 +82,15 @@ class VectorStore:
             for c in chunks
         ]
 
-        # ChromaDB upsert — safe to re-index the same doc
-        collection.upsert(
+        collection.add(
             ids=ids,
-            embeddings=embeddings,
             documents=documents,
             metadatas=metadatas,
+            embeddings=embeddings,
         )
-        logger.info(f"Stored {len(chunks)} chunks in ChromaDB")
+        logger.info(f"Added {len(chunks)} chunks to ChromaDB")
 
-    def delete_document(self, doc_id: str) -> int:
-        """
-        Delete all chunks belonging to a document.
-
-        Returns:
-            Number of chunks deleted
-        """
-        collection = self._get_collection()
-        results = collection.get(where={"doc_id": doc_id})
-        ids_to_delete = results["ids"]
-
-        if ids_to_delete:
-            collection.delete(ids=ids_to_delete)
-            logger.info(f"Deleted {len(ids_to_delete)} chunks for doc_id={doc_id}")
-
-        return len(ids_to_delete)
-
-    # ── Read operations ───────────────────────────────────────────────────────
+    # ── Read operations ──────────────────────────────────────────────────────
 
     def query(
         self,
@@ -113,15 +99,15 @@ class VectorStore:
         doc_filter: Optional[list[str]] = None,
     ) -> list[dict]:
         """
-        Retrieve the top-k most semantically similar chunks.
+        Retrieve similar chunks for a query embedding.
 
         Args:
-            query_embedding: Embedding of the user's question
-            top_k:           Number of chunks to retrieve
-            doc_filter:      Optional list of doc_ids to restrict search
+            query_embedding: Query vector (same dimension as chunk embeddings)
+            top_k:           Maximum number of chunks to return
+            doc_filter:      Optional list of doc_ids to restrict search to
 
         Returns:
-            List of dicts with keys: text, doc_id, filename, page_number, distance
+            List of chunk dicts with text, metadata, and similarity scores
         """
         collection = self._get_collection()
 
@@ -190,3 +176,28 @@ class VectorStore:
             return self._get_collection().count()
         except Exception:
             return 0
+
+    # ── Delete operations ────────────────────────────────────────────────────
+
+    def delete_document(self, doc_id: str) -> int:
+        """
+        Remove all chunks belonging to a document.
+
+        Args:
+            doc_id: Document identifier to delete
+
+        Returns:
+            Number of chunks deleted
+        """
+        collection = self._get_collection()
+
+        # Get all chunk IDs for this document
+        results = collection.get(where={"doc_id": doc_id})
+        chunk_ids = results["ids"]
+        count = len(chunk_ids)
+
+        if count > 0:
+            collection.delete(ids=chunk_ids)
+            logger.info(f"Deleted {count} chunks for document {doc_id}")
+
+        return count
