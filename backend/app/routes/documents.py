@@ -8,6 +8,7 @@ DELETE /api/documents/{doc_id}   — Remove a document
 """
 
 import os
+import re
 import shutil
 import logging
 from datetime import datetime
@@ -102,6 +103,16 @@ async def delete_document(
         raise HTTPException(status_code=404, detail=f"Document '{doc_id}' not found")
 
     deleted = pipeline.delete_document(doc_id)
+    # Clean up uploaded file from disk
+    for fname in os.listdir(settings.upload_dir):
+        name_no_ext = os.path.splitext(fname)[0]
+        safe_id = re.sub(r"[^a-zA-Z0-9_\-]", "_", name_no_ext).lower()[:64]
+        if safe_id == doc_id:
+            try:
+                os.remove(os.path.join(settings.upload_dir, fname))
+            except OSError:
+                pass
+            break
     return DeleteDocumentResponse(
         success=True,
         message=f"Deleted {deleted} chunks for document '{doc_id}'",
