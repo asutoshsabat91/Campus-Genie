@@ -1,5 +1,11 @@
 # CampusGenie
 
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.111-green)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+
+
 CampusGenie is a Retrieval-Augmented Generation (RAG) based AI assistant that enables students and faculty to query campus documents through a conversational interface. Instead of manually searching through PDFs, users can ask natural language questions and receive accurate, citation-backed answers sourced directly from the uploaded documents.
 
 The system is fully containerized using Docker and Docker Compose, making it straightforward to deploy on any machine without environment configuration overhead.
