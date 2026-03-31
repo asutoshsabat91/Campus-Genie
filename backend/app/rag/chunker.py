@@ -122,3 +122,16 @@ class TextChunker:
 # NOTE: edge case fix — single-word or very short pages were
 # producing chunks with chunk_index never incrementing past 0.
 # The while-loop break condition now correctly handles end-of-page.
+
+
+def chunk_stats(chunks: list) -> dict:
+    """Return basic stats about a list of chunks — useful for logging."""
+    if not chunks:
+        return {"total": 0, "avg_words": 0, "min_words": 0, "max_words": 0}
+    words = [c.word_count for c in chunks]
+    return {
+        "total": len(chunks),
+        "avg_words": round(sum(words) / len(words)),
+        "min_words": min(words),
+        "max_words": max(words),
+    }
