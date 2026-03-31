@@ -35,3 +35,9 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+    # Logging
+    log_level: str = "INFO"
+
+    # CORS
+    cors_origins: list[str] = ["*"]
