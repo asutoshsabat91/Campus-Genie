@@ -1,7 +1,7 @@
 """
 CampusGenie — Health Check Route
-Returns liveness and dependency status for all services.
-Used by docker-compose healthcheck and the frontend status page.
+Returns status of all dependent services.
+GET /api/health
 """
 
 import logging
@@ -13,42 +13,52 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-SERVICES = {
-    "ollama":   f"{settings.ollama_base_url}/api/tags",
-    "chromadb": f"http://{settings.chroma_host}:{settings.chroma_port}/api/v1/heartbeat",
-}
+SERVICE_TIMEOUT = 3.0
 
 
-async def _ping(name: str, url: str) -> tuple[str, str]:
-    """Ping a service and return (name, status)."""
+async def _ping_ollama() -> str:
     try:
-        async with httpx.AsyncClient(timeout=3.0) as client:
-            r = await client.get(url)
-            status = "up" if r.status_code == 200 else "degraded"
-    except httpx.ConnectError:
-        status = "down"
-    except Exception as exc:
-        logger.warning(f"Health check failed for {name}: {exc}")
-        status = "down"
-    return name, status
+        async with httpx.AsyncClient(timeout=SERVICE_TIMEOUT) as client:
+            r = await client.get(f"{settings.ollama_base_url}/api/tags")
+            return "up" if r.status_code == 200 else "degraded"
+    except Exception:
+        return "down"
+
+
+async def _ping_chromadb() -> str:
+    try:
+        async with httpx.AsyncClient(timeout=SERVICE_TIMEOUT) as client:
+            r = await client.get(
+                f"http://{settings.chroma_host}:{settings.chroma_port}/api/v1/heartbeat"
+            )
+            return "up" if r.status_code == 200 else "degraded"
+    except Exception:
+        return "down"
 
 
 @router.get("/health", response_model=HealthResponse)
 async def health_check():
     """
-    Check health of all CampusGenie services.
-    Returns overall status: healthy | degraded | unhealthy
-    """
-    import asyncio
-    results = await asyncio.gather(*[_ping(n, u) for n, u in SERVICES.items()])
-    services = {name: status for name, status in results}
-    services["backend"] = "up"
+    Check availability of all backend services.
+    Returns overall status and per-service breakdown.
 
-    if all(v == "up" for v in services.values()):
+    Status values: healthy | degraded | unreachable
+    """
+    services = {
+        "backend":  "up",
+        "ollama":   await _ping_ollama(),
+        "chromadb": await _ping_chromadb(),
+    }
+
+    all_up = all(v == "up" for v in services.values())
+    any_down = any(v == "down" for v in services.values())
+
+    if all_up:
         overall = "healthy"
-    elif any(v == "down" for v in services.values()):
-        overall = "unhealthy"
+    elif any_down:
+        overall = "degraded"
     else:
         overall = "degraded"
 
+    logger.debug(f"Health check: {overall} — {services}")
     return HealthResponse(status=overall, services=services)
