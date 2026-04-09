@@ -288,6 +288,53 @@ The system prompt has been carefully engineered to balance strict adherence to p
 
 ---
 
+## 🚀 Deployment
+
+CampusGenie can be deployed on modern cloud platforms with full RAG functionality. Both serverless (Vercel) and persistent (Render) options are supported.
+
+### Quick Start
+```bash
+# Deploy to Vercel (Recommended)
+./deploy.sh vercel
+
+# Deploy to Render
+./deploy.sh render
+```
+
+### Platform Options
+
+| Feature | Vercel | Render |
+|---|---|---|
+| **Cost** | Free tier available | Free tier available |
+| **Performance** | Excellent global CDN | Reliable persistent service |
+| **Scaling** | Automatic serverless | Manual scaling |
+| **Setup** | One-command deploy | Multiple services setup |
+| **Domains** | `.vercel.app` | Custom domains |
+
+### 📋 Detailed Deployment Guide
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for comprehensive deployment instructions including:
+- Step-by-step setup for both platforms
+- Environment variable configuration
+- Production Docker Compose files
+- Troubleshooting common issues
+- Security and performance considerations
+
+### 🐳 Docker Images for Production
+
+Pre-built Docker images available:
+- `asutoshsabat91/campusgenie-backend:latest`
+- `asutoshsabat91/campusgenie-frontend:latest`
+
+### 🔧 Configuration Files
+
+- `vercel.json` - Vercel deployment configuration
+- `render.yaml` - Render service definitions
+- `docker-compose.cloud.yml` - Production-ready Docker setup
+- `deploy.sh` - Automated deployment script
+
+---
+
 ## University Project Context
 
 This project is submitted as part of the **ETT (Emerging Technology Trends)** course.

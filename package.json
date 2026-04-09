@@ -1,0 +1,19 @@
+{
+  "name": "campusgenie",
+  "version": "1.0.0",
+  "description": "RAG-based AI assistant for campus documents",
+  "scripts": {
+    "dev": "docker-compose up --build",
+    "build": "echo 'No build needed - using Docker'",
+    "start": "docker-compose up"
+  },
+  "keywords": ["rag", "ai", "education", "documents", "chat"],
+  "author": "Asutosh Sabat",
+  "license": "MIT",
+  "engines": {
+    "node": "18.x"
+  },
+  "dependencies": {
+    "@vercel/node": "^3.0.0"
+  }
+}

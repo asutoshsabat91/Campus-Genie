@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # Backend API Service
+  backend:
+    image: asutoshsabat91/campusgenie-backend:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-gemma:2b}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - CHROMA_HOST=${CHROMA_HOST:-chromadb}
+      - CHROMA_PORT=${CHROMA_PORT:-8000}
+      - CHROMA_COLLECTION=${CHROMA_COLLECTION:-campus_docs}
+      - BACKEND_HOST=${BACKEND_HOST:-0.0.0.0}
+      - BACKEND_PORT=${BACKEND_PORT:-8080}
+      - MAX_UPLOAD_SIZE_MB=${MAX_UPLOAD_SIZE_MB:-50}
+      - CHUNK_SIZE=${CHUNK_SIZE:-500}
+      - CHUNK_OVERLAP=${CHUNK_OVERLAP:-50}
+      - RETRIEVAL_TOP_K=${RETRIEVAL_TOP_K:-5}
+      - UPLOAD_DIR=${UPLOAD_DIR:-/app/uploads}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      - chromadb
+      - ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - campusgenie_net
+
+  # ChromaDB Vector Database
+  chromadb:
+    image: chromadb/chroma:0.5.3
+    container_name: campusgenie_chromadb
+    ports:
+      - "${CHROMA_PORT:-8000}:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=FALSE
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - campusgenie_net
+
+  # Ollama LLM Service
+  ollama:
+    image: ollama/ollama:latest
+    container_name: campusgenie_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - campusgenie_net
+
+  # Frontend Streamlit App
+  frontend:
+    image: asutoshsabat91/campusgenie-frontend:latest
+    ports:
+      - "8501:8501"
+    environment:
+      - BACKEND_URL=${BACKEND_URL:-http://backend:8080}
+      - API_TIMEOUT=${API_TIMEOUT:-120}
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - campusgenie_net
+
+volumes:
+  uploads_data:
+    driver: local
+  chroma_data:
+    driver: local
+  ollama_data:
+    driver: local
+
+networks:
+  campusgenie_net:
+    driver: bridge
