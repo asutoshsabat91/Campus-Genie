@@ -1,0 +1,27 @@
+CampusGenie Test Document
+
+This is a test document for CampusGenie RAG system.
+
+CampusGenie is an educational AI assistant that helps students with their studies by providing detailed answers to their questions based on uploaded documents.
+
+Key Features:
+- RAG-powered responses
+- Document indexing
+- Vector search
+- Educational chat
+- Proper citations
+
+How to use CampusGenie:
+1. Upload PDF documents
+2. Wait for processing
+3. Ask questions about the content
+4. Get detailed answers with citations
+
+CampusGenie uses advanced AI technology including:
+- ChromaDB for vector storage
+- Ollama for language models
+- Sentence transformers for embeddings
+- FastAPI for the backend
+- Streamlit for the frontend
+
+This test document should be successfully processed and indexed by the CampusGenie system.

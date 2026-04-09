@@ -1,0 +1,12 @@
+CampusGenie Test Document
+
+This is a test PDF for CampusGenie indexing.
+
+Key Features:
+- RAG-powered responses
+- Document upload and processing
+- Educational chat interface
+- Vector search capabilities
+
+Test Question: What is CampusGenie?
+Expected Answer: CampusGenie is an educational AI assistant...
