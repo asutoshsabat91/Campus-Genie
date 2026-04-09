@@ -3,22 +3,19 @@
   "name": "campusgenie",
   "builds": [
     {
-      "src": "backend/app/main-minimal.py",
-      "use": "@vercel/python",
-      "config": {
-        "requirementsPath": "backend/requirements-vercel.txt"
-      }
+      "src": "backend/app/main.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
     {
-      "src": "backend/app/main-minimal.py",
+      "src": "backend/app/main.py",
       "dest": "/api"
     }
   ],
   "env": {
     "OLLAMA_MODEL": "gemma:2b",
-    "OLLAMA_BASE_URL": "https://api.openai.com/v1",
+    "OLLAMA_BASE_URL": "https://campusgenie-ollama.vercel.app",
     "CHROMA_HOST": "campusgenie-chroma.vercel.app",
     "CHROMA_PORT": "8000",
     "CHROMA_COLLECTION": "campus_docs",
@@ -31,5 +28,11 @@
     "UPLOAD_DIR": "/tmp/uploads",
     "LOG_LEVEL": "INFO",
     "CORS_ORIGINS": "*"
+  },
+  "functions": {
+    "ollama": {
+      "src": "vercel-ollama/ollama.js",
+      "use": "@vercel/node"
+    }
   }
 }

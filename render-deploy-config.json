@@ -1,0 +1,67 @@
+{
+  "services": {
+    "backend": {
+      "type": "pserv",
+      "name": "campusgenie-backend",
+      "repo": "https://github.com/asutoshsabat91/Campus-Genie.git",
+      "rootDir": "backend",
+      "runtime": "python",
+      "buildCommand": "pip install -r requirements.txt",
+      "startCommand": "uvicorn app.main:app --host 0.0.0.0 --port $PORT",
+      "envVars": {
+        "OLLAMA_MODEL": "gemma:2b",
+        "OLLAMA_BASE_URL": "https://campusgenie-ollama.onrender.com",
+        "CHROMA_HOST": "campusgenie-chroma.onrender.com",
+        "CHROMA_PORT": "8000",
+        "CHROMA_COLLECTION": "campus_docs",
+        "BACKEND_HOST": "0.0.0.0",
+        "BACKEND_PORT": "8080",
+        "MAX_UPLOAD_SIZE_MB": "50",
+        "CHUNK_SIZE": "500",
+        "CHUNK_OVERLAP": "50",
+        "RETRIEVAL_TOP_K": "5",
+        "UPLOAD_DIR": "/tmp/uploads",
+        "LOG_LEVEL": "INFO",
+        "CORS_ORIGINS": "*"
+      }
+    },
+    "chromadb": {
+      "type": "pserv",
+      "name": "campusgenie-chroma",
+      "repo": "https://github.com/asutoshsabat91/Campus-Genie.git",
+      "rootDir": "backend",
+      "runtime": "python",
+      "buildCommand": "pip install chromadb==0.5.3",
+      "startCommand": "chroma run --host 0.0.0.0 --port $PORT",
+      "envVars": {
+        "IS_PERSISTENT": "TRUE",
+        "PERSIST_DIRECTORY": "/chroma/chroma"
+      }
+    },
+    "ollama": {
+      "type": "pserv",
+      "name": "campusgenie-ollama",
+      "repo": "https://github.com/asutoshsabat91/Campus-Genie.git",
+      "rootDir": "backend",
+      "runtime": "python",
+      "buildCommand": "pip install ollama",
+      "startCommand": "ollama serve --host 0.0.0.0 --port $PORT",
+      "envVars": {
+        "OLLAMA_KEEP_ALIVE": "24h"
+      }
+    },
+    "frontend": {
+      "type": "pserv",
+      "name": "campusgenie-frontend",
+      "repo": "https://github.com/asutoshsabat91/Campus-Genie.git",
+      "rootDir": "frontend",
+      "runtime": "python",
+      "buildCommand": "pip install -r requirements.txt",
+      "startCommand": "streamlit run app.py --server.port $PORT --server.address 0.0.0.0",
+      "envVars": {
+        "BACKEND_URL": "https://campusgenie-backend.onrender.com",
+        "API_TIMEOUT": "120"
+      }
+    }
+  }
+}

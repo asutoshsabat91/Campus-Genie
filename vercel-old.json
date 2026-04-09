@@ -1,24 +1,31 @@
 {
   "version": 2,
-  "name": "campusgenie",
   "builds": [
     {
-      "src": "backend/app/main-minimal.py",
-      "use": "@vercel/python",
+      "src": "backend/app/main.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "frontend/",
+      "use": "@vercel/static-build",
       "config": {
-        "requirementsPath": "backend/requirements-vercel.txt"
+        "distDir": "frontend"
       }
     }
   ],
   "routes": [
     {
-      "src": "backend/app/main-minimal.py",
+      "src": "backend/app/main.py",
       "dest": "/api"
+    },
+    {
+      "src": "frontend/",
+      "dest": "/"
     }
   ],
   "env": {
     "OLLAMA_MODEL": "gemma:2b",
-    "OLLAMA_BASE_URL": "https://api.openai.com/v1",
+    "OLLAMA_BASE_URL": "https://campusgenie-ollama.vercel.app",
     "CHROMA_HOST": "campusgenie-chroma.vercel.app",
     "CHROMA_PORT": "8000",
     "CHROMA_COLLECTION": "campus_docs",

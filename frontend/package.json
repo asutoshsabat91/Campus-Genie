@@ -1,0 +1,12 @@
+{
+  "name": "campusgenie-frontend",
+  "version": "1.0.0",
+  "description": "CampusGenie Frontend Interface",
+  "scripts": {
+    "start": "streamlit run app.py --server.port $PORT --server.address 0.0.0.0",
+    "build": "pip install -r requirements.txt"
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}
