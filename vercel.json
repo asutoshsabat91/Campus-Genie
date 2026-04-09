@@ -1,0 +1,48 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "backend/app/main.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "frontend/",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "frontend"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "backend/app/main.py",
+      "dest": "/api"
+    },
+    {
+      "src": "frontend/",
+      "dest": "/"
+    }
+  ],
+  "env": {
+    "OLLAMA_MODEL": "gemma:2b",
+    "OLLAMA_BASE_URL": "https://campusgenie-ollama.vercel.app",
+    "CHROMA_HOST": "campusgenie-chroma.vercel.app",
+    "CHROMA_PORT": "8000",
+    "CHROMA_COLLECTION": "campus_docs",
+    "BACKEND_HOST": "0.0.0.0",
+    "BACKEND_PORT": "8080",
+    "MAX_UPLOAD_SIZE_MB": "50",
+    "CHUNK_SIZE": "500",
+    "CHUNK_OVERLAP": "50",
+    "RETRIEVAL_TOP_K": "5",
+    "UPLOAD_DIR": "/tmp/uploads",
+    "LOG_LEVEL": "INFO",
+    "CORS_ORIGINS": "*"
+  },
+  "functions": {
+    "ollama": {
+      "src": "vercel-ollama/ollama.js",
+      "use": "@vercel/node"
+    }
+  }
+}
